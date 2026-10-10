@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RefreshControl | Sistema Ejecutivo</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #07090e;
+            --bg-card: #111827;
+            --bg-card-hover: #1f2937;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(99, 102, 241, 0.4);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --accent: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top, #111827 0%, var(--bg-base) 100%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px 16px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 28px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+            box-sizing: border-box;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 18px;
+        }
+
+        h2 { 
+            margin: 0; 
+            font-size: 1.35rem; 
+            font-weight: 800; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            letter-spacing: -0.025em;
+            background: linear-gradient(135deg, #ffffff 30%, #9ca3af 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .menu-toggle-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.25s ease;
+        }
+        .menu-toggle-btn:hover { 
+            background: rgba(99, 102, 241, 0.1); 
+            border-color: var(--primary);
+            color: #818cf8;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 80px;
+            right: 24px;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 270px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            z-index: 100;
+            overflow: hidden;
+        }
+        .dropdown-menu.active { display: block; animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dropdown-item {
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            border: none;
+            transition: background 0.2s, color 0.2s;
+        }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+
+        .main-menu-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 10px;
+        }
+        
+        .btn-main-gigantic {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.7));
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 20px 22px;
+            border-radius: 18px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .btn-main-gigantic:hover { 
+            transform: translateY(-3px); 
+            border-color: var(--border-glow); 
+            background: linear-gradient(145deg, rgba(99, 102, 241, 0.15), rgba(30, 41, 59, 0.8));
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.2);
+        }
+        .btn-main-gigantic:active { transform: scale(0.98); }
+        .btn-main-gigantic span.icon { font-size: 1.8rem; }
+
+        .form-section { display: none; }
+        .form-section.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        label { 
+            font-weight: 700; 
+            font-size: 0.75rem; 
+            display: block; 
+            margin-top: 16px; 
+            color: var(--text-muted); 
+            text-transform: uppercase; 
+            letter-spacing: 0.08em; 
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            margin-top: 6px;
+            background: #0b0f19;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 14px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        input:focus, select:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+        
+        .input-group { display: flex; gap: 8px; margin-top: 6px; }
+        .input-group input { margin-top: 0; }
+        
+        .btn-scan {
+            background: var(--primary);
+            border: none;
+            color: white;
+            padding: 0 18px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-scan:hover { background: var(--primary-hover); }
+        .btn-scan:active { transform: scale(0.95); }
+
+        .btn-action {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 24px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            transition: all 0.2s ease;
+        }
+        .btn-action:hover { opacity: 0.95; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4); }
+        
+        .btn-back {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+        .btn-back:hover { background: rgba(255, 255, 255, 0.04); color: var(--text-main); border-color: rgba(255, 255, 255, 0.15); }
+
+        .reader-container { width: 100%; border-radius: 14px; overflow: hidden; margin-top: 12px; background: #000; border: 1px solid var(--border-color); display: none; }
+        
+        .loader {
+            display: none;
+            text-align: center;
+            font-weight: 600;
+            color: #818cf8;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+        
+        .alert-msg {
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-top: 16px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+        .alert-success { background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .alert-error { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .cliente-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .cliente-card:hover { border-color: var(--warning); background: rgba(245, 158, 11, 0.04); transform: translateY(-2px); }
+        .cliente-info-row { display: flex; justify-content: space-between; align-items: center; }
+        .badge-piezas { background: rgba(245, 158, 11, 0.15); color: var(--warning); padding: 5px 12px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; }
+
+        .stock-table, .ventas-table {
+            width: 100%;
+            margin-top: 12px;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .stock-table th, .stock-table td, .ventas-table th, .ventas-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+        }
+        .ventas-table th { color: var(--text-muted); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .filter-chip-container {
+            display: flex;
+            gap: 6px;
+            margin-top: 14px;
+            margin-bottom: 14px;
+            background: #0b0f19;
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .chip {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 10px;
+            border-radius: 9px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .chip.active { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>🥤 RefreshControl</h2>
+        <button class="menu-toggle-btn" onclick="toggleMenuAdmin()">⚙️ Menú</button>
+    </div>
+
+    <!-- MENÚ DESPLEGABLE DE ADMINISTRACIÓN -->
+    <div id="adminDropdown" class="dropdown-menu">
+        <button class="dropdown-item" onclick="cerrarMenuAdmin(); cargarResumenFiados()">📝 Tarjetas de Fiados</button>
+        <button class="dropdown-item" onclick="cerrarMenuAdmin(); cargarHistorialVentas()">📋 Historial y Corte Ventas</button>
+        <button class="dropdown-item" onclick="cerrarMenuAdmin(); cambiarVista('vistaAltaProducto')">✨ Dar de Alta Producto</button>
+        <button class="dropdown-item" onclick="cerrarMenuAdmin(); cambiarVista('vistaSurtido')">📦 Surtir Inventario</button>
+        <button class="dropdown-item" onclick="cerrarMenuAdmin(); cargarInventarioActual()">📊 Ver Stock y Corregir</button>
+        <button class="dropdown-item" onclick="cerrarMenuAdmin(); cambiarVista('vistaGasto')">💸 Gastos / Caja Chica</button>
+        <button class="dropdown-item" onclick="cerrarMenuAdmin(); cargarHistorialGastos()">📜 Historial de Gastos</button>
+    </div>
+
+    <!-- PANTALLA PRINCIPAL -->
+    <div id="menuPrincipal" class="form-section active">
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;">Operación Diaria</div>
+        <div class="main-menu-grid">
+            <button class="btn-main-gigantic" onclick="cambiarVista('vistaVenta')">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <span class="icon">🛒</span>
+                    <div>
+                        <div style="font-size: 1.05rem; font-weight: 700;">Registrar Venta</div>
+                        <small style="color: var(--text-muted); font-weight: normal; font-size: 0.8rem;">Efectivo o Transferencia</small>
+                    </div>
+                </div>
+                <span style="font-size: 1.2rem; color: var(--primary);">➔</span>
+            </button>
+
+            <button class="btn-main-gigantic" onclick="cambiarVista('vistaFiado')" style="border-color: rgba(245, 158, 11, 0.3);">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <span class="icon">📝</span>
+                    <div>
+                        <div style="font-size: 1.05rem; font-weight: 700;">Anotar Fiado</div>
+                        <small style="color: var(--text-muted); font-weight: normal; font-size: 0.8rem;">Control de límite semanal</small>
+                    </div>
+                </div>
+                <span style="font-size: 1.2rem; color: var(--warning);">➔</span>
+            </button>
+
+            <button class="btn-main-gigantic" onclick="cambiarVista('vistaConsumo')" style="border-color: rgba(59, 130, 246, 0.3);">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                    <span class="icon">👨‍👩‍👧</span>
+                    <div>
+                        <div style="font-size: 1.05rem; font-weight: 700;">Consumo Familiar</div>
+                        <small style="color: var(--text-muted); font-weight: normal; font-size: 0.8rem;">Retiros para el hogar</small>
+                    </div>
+                </div>
+                <span style="font-size: 1.2rem; color: #3b82f6;">➔</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- VISTA: TARJETAS DE CLIENTES FIADOS -->
+    <div id="vistaFiadosDashboard" class="form-section">
+        <h3 style="margin-top:0; font-size:1.15rem;">Créditos de Clientes (Fiados)</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top:0;">Toca una tarjeta para ver el detalle y liquidar o agregar.</p>
+        
+        <div id="contenedorTarjetasFiados" style="max-height: 320px; overflow-y: auto; padding-right: 4px;">
+            <div style="text-align:center; color:var(--text-muted); padding: 20px;">Cargando clientes...</div>
+        </div>
+
+        <button class="btn-back" onclick="volverMenu()">Volver al Menú</button>
+    </div>
+
+    <!-- VISTA DETALLE DE CLIENTE FIADO -->
+    <div id="vistaDetalleCliente" class="form-section">
+        <h3 style="margin-top:0; font-size:1.15rem;" id="lblClienteNombre">Cliente</h3>
+        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); padding: 14px; border-radius: 14px; margin-bottom: 14px;">
+            <div style="font-size: 0.75rem; color: var(--warning); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Estado de Cuenta:</div>
+            <div style="font-size: 0.9rem; font-weight: 600; margin-top: 4px;" id="lblClienteResumen">Acumulado: 0 pzas | Disponibles: 20 pzas</div>
+        </div>
+
+        <div style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 14px; margin-bottom: 14px;">
+            <table class="ventas-table">
+                <thead>
+                    <tr><th>Fecha</th><th>Producto</th><th>Pzas</th><th>Total</th><th>Estatus</th></tr>
+                </thead>
+                <tbody id="cuerpoTablaMovimientosCliente">
+                    <tr><td colspan="5" style="text-align:center;">Cargando movimientos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <button class="btn-action" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:#ffffff; margin-top:0; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);" onclick="abrirModalAgregarFiado()">➕ Agregar más refrescos</button>
+        <button class="btn-action" style="margin-top:10px;" onclick="liquidarDeudaClienteActual()">💵 Liquidar / Pagar Deuda</button>
+        <button class="btn-back" onclick="cambiarVista('vistaFiadosDashboard')">⬅ Volver a Clientes</button>
+    </div>
+
+    <!-- MODAL / VISTA PARA AGREGAR REFRESCOS A CLIENTE EXISTENTE -->
+    <div id="vistaAgregarFiadoExtra" class="form-section">
+        <h3 style="margin-top:0; font-size:1.15rem;">Agregar a Fiado</h3>
+        <label>Cliente</label>
+        <input type="text" id="fiadoExtraCliente" readonly style="background: rgba(255,255,255,0.02); color:var(--text-muted);">
+
+        <label>Código de Barras del Refresco</label>
+        <div class="input-group">
+            <input type="text" id="fiadoExtraCodigo" placeholder="Escanea código del refresco">
+            <button type="button" class="btn-scan" onclick="iniciarEscaner('fiadoExtraCodigo', 'reader-fiado-extra')">📷</button>
+        </div>
+        <div id="reader-fiado-extra" class="reader-container"></div>
+
+        <label>Cantidad (Piezas)</label>
+        <input type="number" id="fiadoExtraCantidad" value="1" min="1">
+
+        <button class="btn-action" onclick="enviarFiadoExtra()">Guardar y Actualizar Límite</button>
+        <button class="btn-back" onclick="abrirDetalleCliente(clienteSeleccionadoActual.nombre)">Cancelar</button>
+    </div>
+
+    <!-- VISTA: HISTORIAL DE VENTAS Y CORTE -->
+    <div id="vistaVentasHistorial" class="form-section">
+        <h3 style="margin-top:0; font-size:1.15rem;">Historial y Corte de Ventas</h3>
+        
+        <div class="filter-chip-container">
+            <button class="chip active" onclick="filtrarVentas('hoy', this)">Hoy</button>
+            <button class="chip" onclick="filtrarVentas('ayer', this)">Ayer</button>
+            <button class="chip" onclick="filtrarVentas('rango', this)">Rango</button>
+        </div>
+
+        <div id="contenedorRangoFechas" style="display: none; margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color);">
+            <label style="margin-top:0;">Desde:</label>
+            <input type="date" id="fechaInicio" onchange="aplicarFiltroRango()">
+            <label>Hasta:</label>
+            <input type="date" id="fechaFin" onchange="aplicarFiltroRango()">
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); padding: 14px; border-radius: 14px; margin-bottom: 14px;">
+            <div style="font-size: 0.75rem; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Resumen del Periodo:</div>
+            <div style="font-size: 1.15rem; font-weight: 800; margin-top: 4px;" id="lblTotalDinero">$0.00 <span style="font-size:0.75rem; font-weight:normal; color:var(--text-muted);" id="lblDetallePago">(Efectivo: $0 | Transf: $0)</span></div>
+        </div>
+
+        <div style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 14px;">
+            <table class="ventas-table">
+                <thead>
+                    <tr><th>Fecha/Hora</th><th>Producto</th><th>Cant</th><th>Pago</th><th>Total</th></tr>
+                </thead>
+                <tbody id="cuerpoTablaVentas">
+                    <tr><td colspan="5" style="text-align:center;">Cargando ventas...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <button class="btn-back" onclick="volverMenu()">Volver al Menú</button>
+    </div>
+
+    <!-- VISTA: HISTORIAL DE GASTOS -->
+    <div id="vistaGastosHistorial" class="form-section">
+        <h3 style="margin-top:0; font-size:1.15rem;">Historial de Gastos</h3>
+        
+        <div class="filter-chip-container">
+            <button class="chip active" onclick="filtrarGastos('hoy', this)">Hoy</button>
+            <button class="chip" onclick="filtrarGastos('ayer', this)">Ayer</button>
+            <button class="chip" onclick="filtrarGastos('rango', this)">Rango</button>
+        </div>
+
+        <div id="contenedorRangoFechasGastos" style="display: none; margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color);">
+            <label style="margin-top:0;">Desde:</label>
+            <input type="date" id="fechaInicioGasto" onchange="aplicarFiltroRangoGasto()">
+            <label>Hasta:</label>
+            <input type="date" id="fechaFinGasto" onchange="aplicarFiltroRangoGasto()">
+        </div>
+
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); padding: 14px; border-radius: 14px; margin-bottom: 14px;">
+            <div style="font-size: 0.75rem; color: var(--danger); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Total Gastado en el Periodo:</div>
+            <div style="font-size: 1.15rem; font-weight: 800; margin-top: 4px;" id="lblTotalGastos">$0.00</div>
+        </div>
+
+        <div style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 14px;">
+            <table class="ventas-table">
+                <thead>
+                    <tr><th>Fecha/Hora</th><th>Concepto</th><th>Monto</th></tr>
+                </thead>
+                <tbody id="cuerpoTablaGastos">
+                    <tr><td colspan="3" style="text-align:center;">Cargando gastos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <button class="btn-back" onclick="volverMenu()">Volver al Menú</button>
+    </div>
+
+    <!-- VISTA: DAR DE ALTA PRODUCTO NUEVO -->
+    <div id="vistaAltaProducto" class="form-section">
+        <h3 style="margin-top:0; font-size:1.15rem;">Nuevo Producto</h3>
+        <label>Código de Barras</label>
+        <div class="input-group">
+            <input type="text" id="nuevoCodigo" placeholder="Escanea código del producto">
+            <button type="button" class="btn-scan" onclick="iniciarEscaner('nuevoCodigo', 'reader-alta')">📷</button>
+        </div>
+        <div id="reader-alta" class="reader-container"></div>
+
+        <label>Sabor / Marca</label>
+        <input type="text" id="nuevoSabor" placeholder="Ej. Coca-Cola, Manzanita">
+
+        <label>Capacidad</label>
+        <input type="text" id="nuevoCapacidad" placeholder="Ej. 600ml, 2L, Lata">
+
+        <label>Piezas por Caja</label>
+        <input type="number" id="nuevoPiezasCaja" value="24" min="1">
+
+        <label>Precio Costo Caja ($)</label>
+        <input type="number" id="nuevoCostoCaja" step="1" placeholder="Lo que te cuesta la caja">
+
+        <label>Precio Venta Unitario ($)</label>
+        <input type="number" id="nuevoPrecioUnitario" step="0.50" placeholder="Precio por pieza suelta">
+
+        <label>Stock Inicial (Piezas)</label>
+        <input type="number" id="nuevoStockInicial" value="0" min="0">
+
+        <button class="btn-action" onclick="enviarOperacion('registrarNuevoProducto')">Guardar Producto en Sistema</button>
+        <button class="btn-back" onclick="volverMenu()">Volver al Menú</button>
+    </div>
+
+    <!-- 1. VISTA VENTA -->
+    <div id="vistaVenta" class="form-section">
+        <h3 style="margin-top:0; font-size:1.15rem;">Registrar Venta</h3>
+        <label>Código de Barras</label>
+        <div class="input-group">
+            <input type="text" id="ventaCodigo" placeholder="Escanea o escribe código" oninput="buscarInfoProducto('ventaCodigo', 'ventaProductoInfo')" onchange="buscarInfoProducto('ventaCodigo', 'ventaProductoInfo')">
+            <button type="button" class="btn-scan" onclick="iniciarEscaner('ventaCodigo', 'reader-venta'); setTimeout(() => buscarInfoProducto('ventaCodigo', 'ventaProductoInfo'), 500);">📷</button>
+        </div>
+        <div id="reader-venta" class="reader-container"></div>
+
+        <label>Producto Identificado</label>
+        <input type="text" id="ventaProductoInfo" readonly placeholder="Esperando producto..." style="background: rgba(255,255,255,0.02); color: var(--text-muted); cursor: not-allowed;">
+
+        <label>Tipo de Venta</label>
+        <select id="ventaTipo" onchange="cambiarTextoCantidad()">
+            <option value="Pieza">Pieza (Unidad suelta)</option>
+            <option value="Caja">Caja Completa</option>
+        </select>
+
+        <label id="labelCantidadVenta">Cantidad (Piezas)</label>
+        <input type="number" id="ventaCantidad" value="1" min="1">
+
+        <label>Método de Pago</label>
+        <select id="ventaMetodo">
+            <option value="Efectivo" selected>Efectivo (Por defecto)</option>
+            <option value="Transferencia">Transferencia</option>
+        </select>
+
+        <button class="btn-action" onclick="enviarOperacion('registrarVenta')">Confirmar Venta</button>
+        <button class="btn-back" onclick="volverMenu()">Volver al Menú</button>
+    </div>
+
+    <!-- 2. VISTA CONSUMO INTERNO -->
+    <div id="vistaConsumo" class="form-section">
+        <h3 style="margin-top:0; font-size:1.15rem;">Consumo Familiar</h3>
+        <label>Código de Barras</label>
+        <div class="input-group">
+            <input type="text" id="consumoCodigo" placeholder="Código del refresco" oninput="buscarInfoProducto('consumoCodigo', 'consumoProductoInfo')" onchange="buscarInfoProducto('consumoCodigo', 'consumoProductoInfo')">
+            <button type="button" class="btn-scan" onclick="iniciarEscaner('consumoCodigo', 'reader-consumo'); setTimeout(() => buscarInfoProducto('consumoCodigo', 'consumoProductoInfo'), 500);">📷</button>
+        </div>
+        <div id="reader-consumo" class="reader-container"></div>
+        
+        <label>Producto Identificado</label>
+        <input type="text" id="consumoProductoInfo" readonly placeholder="Esperando producto..." style="background: rgba(255,255,255,0.02); color: var(--text-muted); cursor: not-allowed;">
+
+        <label>Cantidad (Piezas)</label>
+        <input type="number" id="consumoCantidad" value="1" min="1">
+
+        <label>¿Quién lo consumió?</label>
+        <input type="text" id="consumoQuien" placeholder="Nombre (opcional)">
+
+        <button class="btn-action" onclick="enviarOperacion('registrarConsumo')">Registrar Consumo</button>
+        <button class="btn-back" onclick="volverMenu()">Volver al Menú</button>
+    </div>
+
+    <!-- 3. VISTA FIADOS -->
+    <div id="vistaFiado" class="form-section">
+        <h3 style="margin-top:0; font-size:1.15rem;">Anotar Fiado</h3>
+        <label>Nombre del Cliente</label>
+        <input type="text" id="fiadoCliente" placeholder="Nombre completo">
+
+        <label>Código de Barras</label>
+        <div class="input-group">
+            <input type="text" id="fiadoCodigo" placeholder="Código del refresco" oninput="buscarInfoProducto('fiadoCodigo', 'fiadoProductoInfo')" onchange="buscarInfoProducto('fiadoCodigo', 'fiadoProductoInfo')">
+            <button type="button" class="btn-scan" onclick="iniciarEscaner('fiadoCodigo', 'reader-fiado'); setTimeout(() => buscarInfoProducto('fiadoCodigo', 'fiadoProductoInfo'), 500);">📷</button>
+        </div>
+        <div id="reader-fiado" class="reader-container"></div>
+
+        <label>Producto Identificado</label>
+        <input type="text" id="fiadoProductoInfo" readonly placeholder="Esperando producto..." style="background: rgba(255,255,255,0.02); color: var(--text-muted); cursor: not-allowed;">
+
+        <label>Cantidad (Piezas)</label>
+        <input type="number" id="fiadoCantidad" value="1" min="1">
+
+        <button class="btn-action" onclick="enviarOperacion('registrarFiado')">Registrar Fiado</button>
+        <button class="btn-back" onclick="volverMenu()">Volver al Menú</button>
+    </div>
+
+    <!-- 4. VISTA GASTOS -->
+    <div id="vistaGasto" class="form-section">
+        <h3 style="margin-top:0; font-size:1.15rem;">Caja Chica / Gastos</h3>
+        <label>Descripción</label>
+        <input type="text" id="gastoConcepto" placeholder="Ej. Compra de tortillas">
+
+        <label>Monto de Salida ($)</label>
+        <input type="number" id="gastoMonto" step="0.50" placeholder="0.00">
+
+        <button class="btn-action" onclick="enviarOperacion('registrarGasto')">Registrar Salida</button>
+        <button class="btn-back" onclick="volverMenu()">Volver al Menú</button>
+    </div>
+
+    <!-- 5. VISTA SURTIDO -->
+    <div id="vistaSurtido" class="form-section">
+        <h3 style="margin-top:0; font-size:1.15rem;">Surtir Inventario</h3>
+        <label>Código de Barras del Producto</label>
+        <div class="input-group">
+            <input type="text" id="surtidoCodigo" placeholder="Escanea código de la caja">
+            <button type="button" class="btn-scan" onclick="iniciarEscaner('surtidoCodigo', 'reader-surtido')">📷</button>
+        </div>
+        <div id="reader-surtido" class="reader-container"></div>
+
+        <label>Cajas Compradas</label>
+        <input type="number" id="surtidoCajas" value="1" min="1">
+
+        <label>Costo Total Invertido ($)</label>
+        <input type="number" id="surtidoCosto" step="1" placeholder="Dinero total pagado">
+
+        <button class="btn-action" onclick="enviarOperacion('registrarSurtido')">Guardar y Sumar Stock</button>
+        <button class="btn-back" onclick="volverMenu()">Volver al Menú</button>
+    </div>
+
+    <!-- 6. VISTA CONSULTA DE STOCK Y CORRECCIÓN -->
+    <div id="vistaStock" class="form-section">
+        <h3 style="margin-top:0; font-size:1.15rem;">Stock y Correcciones</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top:0;">Consulta existencias o corrige el stock si hubo algún error de dedo.</p>
+        
+        <div id="tablaStockContenedor" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 14px;">
+            <table class="stock-table">
+                <thead>
+                    <tr><th>Producto</th><th>Stock (Piezas)</th></tr>
+                </thead>
+                <tbody id="cuerpoTablaStock">
+                    <tr><td colspan="2" style="text-align:center;">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4 style="margin-bottom: 4px; margin-top: 18px; font-size: 0.95rem;">🛠️ Corregir Stock de Producto</h4>
+        <label>Seleccionar Producto</label>
+        <select id="corrigeSelectProducto">
+            <option value="">Selecciona un producto...</option>
+        </select>
+        
+        <label>Nuevo Stock Real (Piezas Totales)</label>
+        <input type="number" id="corrigeStockNuevo" placeholder="Ej. Cantidad real física">
+
+        <button class="btn-action" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:#ffffff; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);" onclick="ejecutarCorreccion()">Aplicar Corrección</button>
+        <button class="btn-back" onclick="volverMenu()">Volver al Menú</button>
+    </div>
+
+    <div class="loader" id="loader">Procesando operación... ⏳</div>
+    <div class="alert-msg" id="alertMsg"></div>
+</div>
+
+<script>
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbxqpOkmnTUXymxRg15VZwQ_PU9lt4QABeKhIr73iM1ecRfm8pZRnBxoTv5fVibdTugD/exec";
+    let html5QrCode = null;
+    let todasLasVentas = [];
+    let todosLosGastos = [];
+    let clientesFiadosData = [];
+    let clienteSeleccionadoActual = null;
+    let inventarioCache = [];
+
+    function toggleMenuAdmin() {
+        let dropdown = document.getElementById('adminDropdown');
+        dropdown.classList.toggle('active');
+    }
+
+    function cerrarMenuAdmin() {
+        document.getElementById('adminDropdown').classList.remove('active');
+    }
+
+    window.onclick = function(event) {
+        if (!event.target.matches('.menu-toggle-btn')) {
+            let dropdown = document.getElementById('adminDropdown');
+            if (dropdown && dropdown.classList.contains('active')) {
+                dropdown.classList.remove('active');
+            }
+        }
+    }
+
+    function volverMenu() {
+        if (html5QrCode) {
+            html5QrCode.stop().catch(() => {}).finally(() => { html5QrCode = null; });
+        }
+        document.querySelectorAll('.reader-container').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.form-section').forEach(el => el.classList.remove('active'));
+        document.getElementById('menuPrincipal').classList.add('active');
+        
+        document.getElementById('ventaProductoInfo').value = "";
+        document.getElementById('consumoProductoInfo').value = "";
+        document.getElementById('fiadoProductoInfo').value = "";
+        ocultarAlerta();
+    }
+
+    function cambiarVista(vistaId) {
+        if (html5QrCode) {
+            html5QrCode.stop().catch(() => {}).finally(() => { html5QrCode = null; });
+        }
+        document.querySelectorAll('.reader-container').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.form-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(vistaId).classList.add('active');
+        ocultarAlerta();
+
+        if ((vistaId === 'vistaVenta' || vistaId === 'vistaConsumo' || vistaId === 'vistaFiado' || vistaId === 'vistaStock') && inventarioCache.length === 0) {
+            precargarInventarioCache();
+        } else if (vistaId === 'vistaStock') {
+            poblarSelectCorreccionStock();
+        }
+    }
+
+    async function precargarInventarioCache() {
+        try {
+            let response = await fetch(URL_WEB_APP, {
+                method: 'POST',
+                body: JSON.stringify({ accion: 'obtenerInventario' })
+            });
+            let resultado = await response.json();
+            if (resultado.status === 'success') {
+                inventarioCache = resultado.inventario;
+                poblarSelectCorreccionStock();
+            }
+        } catch (e) {
+            console.error("No se pudo precargar el inventario", e);
+        }
+    }
+
+    function poblarSelectCorreccionStock() {
+        let select = document.getElementById('corrigeSelectProducto');
+        if (!select) return;
+        select.innerHTML = `<option value="">Selecciona un producto...</option>`;
+        inventarioCache.forEach(prod => {
+            select.innerHTML += `<option value="${prod.codigo}">${prod.sabor} (${prod.capacidad})</option>`;
+        });
+    }
+
+    function buscarInfoProducto(inputId, infoId) {
+        let codigoIngresado = document.getElementById(inputId).value.trim();
+        let campoInfo = document.getElementById(infoId);
+
+        if (!codigoIngresado) {
+            campoInfo.value = "";
+            return;
+        }
+
+        let prodEncontrado = inventarioCache.find(p => String(p.codigo).trim() === codigoIngresado || String(p.id).trim() === codigoIngresado);
+
+        if (prodEncontrado) {
+            campoInfo.value = `${prodEncontrado.sabor} (${prodEncontrado.capacidad})`;
+        } else {
+            campoInfo.value = "Producto no encontrado en sistema";
+        }
+    }
+
+    function cambiarTextoCantidad() {
+        let tipo = document.getElementById('ventaTipo').value;
+        document.getElementById('labelCantidadVenta').innerText = tipo === 'Caja' ? 'Cantidad (Cajas)' : 'Cantidad (Piezas)';
+    }
+
+    function mostrarAlerta(mensaje, esError = false) {
+        let alertDiv = document.getElementById('alertMsg');
+        alertDiv.innerText = mensaje;
+        alertDiv.className = "alert-msg " + (esError ? "alert-error" : "alert-success");
+        alertDiv.style.display = "block";
+    }
+
+    function ocultarAlerta() {
+        document.getElementById('alertMsg').style.display = "none";
+    }
+
+    // CARGAR RESUMEN DE FIADOS EN TARJETAS
+    async function cargarResumenFiados() {
+        cambiarVista('vistaFiadosDashboard');
+        let contenedor = document.getElementById('contenedorTarjetasFiados');
+        contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 20px;">Cargando tarjetas de clientes...</div>`;
+
+        try {
+            let response = await fetch(URL_WEB_APP, {
+                method: 'POST',
+                body: JSON.stringify({ accion: 'obtenerResumenFiados' })
+            });
+            let resultado = await response.json();
+            if (resultado.status === 'success') {
+                clientesFiadosData = resultado.clientes;
+                renderizarTarjetasFiados(clientesFiadosData);
+            } else {
+                contenedor.innerHTML = `<div style="text-align:center; color:var(--danger); padding:20px;">Error al cargar fiados</div>`;
+            }
+        } catch (e) {
+            contenedor.innerHTML = `<div style="text-align:center; color:var(--danger); padding:20px;">Error de conexión</div>`;
+        }
+    }
+
+    function renderizarTarjetasFiados(clientes) {
+        let contenedor = document.getElementById('contenedorTarjetasFiados');
+        contenedor.innerHTML = "";
+
+        if (clientes.length === 0) {
+            contenedor.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px;">No hay clientes con créditos activos</div>`;
+            return;
+        }
+
+        clientes.forEach(c => {
+            let dineroPendiente = c.movimientos
+                .filter(m => m.estatus === 'PENDIENTE')
+                .reduce((acc, m) => acc + Number(m.monto), 0);
+            
+            c.totalDineroPendiente = dineroPendiente;
+
+            contenedor.innerHTML += `
+                <div class="cliente-card" onclick='abrirDetalleCliente("${c.nombre}")'>
+                    <div class="cliente-info-row">
+                        <span style="font-weight: 700; font-size: 1.05rem;">👤 ${c.nombre}</span>
+                        <span class="badge-piezas">${c.totalPiezasPendientes} pzas ($${dineroPendiente.toFixed(2)})</span>
+                    </div>
+                    <div style="margin-top: 8px; font-size: 0.8rem; color: var(--text-muted);">
+                        Límite semanal: ${c.limiteMaximo} pzas | <b>Disponibles: ${c.piezasDisponibles} pzas</b>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function abrirDetalleCliente(nombreCliente) {
+        clienteSeleccionadoActual = clientesFiadosData.find(c => c.nombre === nombreCliente);
+        if (!clienteSeleccionadoActual) return;
+
+        let dineroPendiente = clienteSeleccionadoActual.movimientos
+            .filter(m => m.estatus === 'PENDIENTE')
+            .reduce((acc, m) => acc + Number(m.monto), 0);
+
+        document.getElementById('lblClienteNombre').innerText = clienteSeleccionadoActual.nombre;
+        
+        document.getElementById('lblClienteResumen').innerHTML = 
+            `Acumulado: <b>${clienteSeleccionadoActual.totalPiezasPendientes} pzas ($${dineroPendiente.toFixed(2)})</b> | Disponibles: ${clienteSeleccionadoActual.piezasDisponibles} pzas`;
+
+        let tbody = document.getElementById('cuerpoTablaMovimientosCliente');
+        tbody.innerHTML = "";
+
+        clienteSeleccionadoActual.movimientos.forEach(m => {
+            let fechaCorta = new Date(m.fecha).toLocaleDateString([], { month: 'short', day: 'numeric' });
+            tbody.innerHTML += `<tr>
+                <td>${fechaCorta}</td>
+                <td><b>${m.productoNombre}</b></td>
+                <td>${m.piezas}</td>
+                <td>$${Number(m.monto).toFixed(2)}</td>
+                <td><small style="color:${m.estatus === 'PENDIENTE' ? 'var(--warning)' : 'var(--accent)'};">${m.estatus}</small></td>
+            </tr>`;
+        });
+
+        cambiarVista('vistaDetalleCliente');
+    }
+
+    function abrirModalAgregarFiado() {
+        if (!clienteSeleccionadoActual) return;
+        document.getElementById('fiadoExtraCliente').value = clienteSeleccionadoActual.nombre;
+        document.getElementById('fiadoExtraCodigo').value = "";
+        document.getElementById('fiadoExtraCantidad').value = "1";
+        cambiarVista('vistaAgregarFiadoExtra');
+    }
+
+    async function enviarFiadoExtra() {
+        let datos = {
+            accion: 'registrarFiado',
+            cliente: clienteSeleccionadoActual.nombre,
+            codigo: document.getElementById('fiadoExtraCodigo').value.trim(),
+            cantidad: document.getElementById('fiadoExtraCantidad').value
+        };
+
+        if (!datos.codigo) return alert("Ingresa o escanea el código del producto.");
+
+        document.getElementById('loader').style.display = 'block';
+        try {
+            let response = await fetch(URL_WEB_APP, {
+                method: 'POST',
+                body: JSON.stringify(datos)
+            });
+            let resultado = await response.json();
+            document.getElementById('loader').style.display = 'none';
+
+            if (resultado.status === 'success') {
+                mostrarAlerta(resultado.message, false);
+                setTimeout(() => { cargarResumenFiados(); }, 2000);
+            } else {
+                mostrarAlerta("Error: " + resultado.message, true);
+            }
+        } catch (error) {
+            document.getElementById('loader').style.display = 'none';
+            mostrarAlerta("Error de conexión con el servidor.", true);
+        }
+    }
+
+    async function liquidarDeudaClienteActual() {
+        if (!clienteSeleccionadoActual) return;
+        if (!confirm("¿Deseas marcar como PAGADA toda la deuda pendiente de " + clienteSeleccionadoActual.nombre + "?")) return;
+
+        document.getElementById('loader').style.display = 'block';
+        try {
+            let response = await fetch(URL_WEB_APP, {
+                method: 'POST',
+                body: JSON.stringify({ accion: 'liquidarDeudaCliente', cliente: clienteSeleccionadoActual.nombre })
+            });
+            let resultado = await response.json();
+            document.getElementById('loader').style.display = 'none';
+
+            if (resultado.status === 'success') {
+                mostrarAlerta(resultado.message, false);
+                setTimeout(() => { cargarResumenFiados(); }, 2000);
+            } else {
+                mostrarAlerta("Error: " + resultado.message, true);
+            }
+        } catch (error) {
+            document.getElementById('loader').style.display = 'none';
+            mostrarAlerta("Error de conexión.", true);
+        }
+    }
+
+    async function enviarOperacion(accion) {
+        ocultarAlerta();
+        let datos = { accion: accion };
+
+        if (accion === 'registrarNuevoProducto') {
+            datos.codigo = document.getElementById('nuevoCodigo').value.trim();
+            datos.sabor = document.getElementById('nuevoSabor').value.trim();
+            datos.capacidad = document.getElementById('nuevoCapacidad').value.trim();
+            datos.piezasCaja = document.getElementById('nuevoPiezasCaja').value;
+            datos.costoCaja = document.getElementById('nuevoCostoCaja').value;
+            datos.precioUnitario = document.getElementById('nuevoPrecioUnitario').value;
+            datos.stockInicial = document.getElementById('nuevoStockInicial').value;
+            if (!datos.codigo || !datos.sabor || !datos.costoCaja || !datos.precioUnitario) {
+                return alert("Faltan datos obligatorios (Código, Sabor, Costo o Precio).");
+            }
+        } else if (accion === 'registrarVenta') {
+            datos.codigo = document.getElementById('ventaCodigo').value.trim();
+            datos.tipoVenta = document.getElementById('ventaTipo').value;
+            datos.cantidad = document.getElementById('ventaCantidad').value;
+            datos.metodoPago = document.getElementById('ventaMetodo').value;
+            if (!datos.codigo) return alert("Ingresa o escanea el código del producto.");
+        } else if (accion === 'registrarConsumo') {
+            datos.codigo = document.getElementById('consumoCodigo').value.trim();
+            datos.cantidad = document.getElementById('consumoCantidad').value;
+            datos.quien = document.getElementById('consumoQuien').value.trim();
+            if (!datos.codigo) return alert("Ingresa el código del producto.");
+        } else if (accion === 'registrarFiado') {
+            datos.cliente = document.getElementById('fiadoCliente').value.trim();
+            datos.codigo = document.getElementById('fiadoCodigo').value.trim();
+            datos.cantidad = document.getElementById('fiadoCantidad').value;
+            if (!datos.cliente || !datos.codigo) return alert("Faltan datos del cliente o producto.");
+        } else if (accion === 'registrarGasto') {
+            datos.concepto = document.getElementById('gastoConcepto').value.trim();
+            datos.monto = document.getElementById('gastoMonto').value;
+            if (!datos.concepto || !datos.monto) return alert("Ingresa la descripción y el monto.");
+        } else if (accion === 'registrarSurtido') {
+            datos.codigo = document.getElementById('surtidoCodigo').value.trim();
+            datos.cajas = document.getElementById('surtidoCajas').value;
+            datos.costoTotal = document.getElementById('surtidoCosto').value;
+            if (!datos.codigo || !datos.costoTotal) return alert("Faltan datos del producto o costo.");
+        }
+
+        document.getElementById('loader').style.display = 'block';
+
+        try {
+            let response = await fetch(URL_WEB_APP, {
+                method: 'POST',
+                body: JSON.stringify(datos)
+            });
+            let resultado = await response.json();
+            document.getElementById('loader').style.display = 'none';
+
+            if (resultado.status === 'success') {
+                mostrarAlerta(resultado.message, false);
+                setTimeout(() => { volverMenu(); }, 2000);
+            } else {
+                mostrarAlerta("Error: " + resultado.message, true);
+            }
+        } catch (error) {
+            document.getElementById('loader').style.display = 'none';
+            mostrarAlerta("Error de conexión con el servidor.", true);
+        }
+    }
+
+    async function cargarHistorialVentas() {
+        cambiarVista('vistaVentasHistorial');
+        let tbody = document.getElementById('cuerpoTablaVentas');
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Cargando ventas...</td></tr>`;
+
+        try {
+            let response = await fetch(URL_WEB_APP, {
+                method: 'POST',
+                body: JSON.stringify({ accion: 'obtenerVentas' })
+            });
+            let resultado = await response.json();
+            if (resultado.status === 'success') {
+                todasLasVentas = resultado.ventas;
+                filtrarVentas('hoy', document.querySelector('#vistaVentasHistorial .chip'));
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--danger);">Error al cargar ventas</td></tr>`;
+            }
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--danger);">Error de conexión</td></tr>`;
+        }
+    }
+
+    function filtrarVentas(tipoFiltro, elementoBtn) {
+        let contenedorVista = document.getElementById('vistaVentasHistorial');
+        contenedorVista.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        if (elementoBtn) elementoBtn.classList.add('active');
+
+        let contenedorRango = document.getElementById('contenedorRangoFechas');
+        contenedorRango.style.display = (tipoFiltro === 'rango') ? 'block' : 'none';
+
+        let hoyStr = new Date().toISOString().split('T')[0];
+        let ayerObj = new Date();
+        ayerObj.setDate(ayerObj.getDate() - 1);
+        let ayerStr = ayerObj.toISOString().split('T')[0];
+
+        let ventasFiltradas = todasLasVentas.filter(v => {
+            let fechaVentaStr = new Date(v.fechaHora).toISOString().split('T')[0];
+            if (tipoFiltro === 'hoy') return fechaVentaStr === hoyStr;
+            if (tipoFiltro === 'ayer') return fechaVentaStr === ayerStr;
+            if (tipoFiltro === 'rango') {
+                let inicio = document.getElementById('fechaInicio').value;
+                let fin = document.getElementById('fechaFin').value;
+                if (!inicio || !fin) return true;
+                return fechaVentaStr >= inicio && fechaVentaStr <= fin;
+            }
+            return true;
+        });
+
+        renderizarTablaVentas(ventasFiltradas);
+    }
+
+    function aplicarFiltroRango() {
+        filtrarVentas('rango', null);
+    }
+
+    function renderizarTablaVentas(ventas) {
+        let tbody = document.getElementById('cuerpoTablaVentas');
+        tbody.innerHTML = "";
+
+        let totalDinero = 0;
+        let totalEfectivo = 0;
+        let totalTransferencia = 0;
+
+        if (ventas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No hay ventas en este periodo</td></tr>`;
+        } else {
+            ventas.forEach(v => {
+                let fechaFormateada = new Date(v.fechaHora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                totalDinero += Number(v.total);
+                if (v.metodoPago === 'Transferencia') {
+                    totalTransferencia += Number(v.total);
+                } else {
+                    totalEfectivo += Number(v.total);
+                }
+
+                tbody.innerHTML += `<tr>
+                    <td>${fechaFormateada}</td>
+                    <td><b>${v.producto}</b><br><small style="color:var(--text-muted);">${v.tipo}: ${v.cantidad}</small></td>
+                    <td>${v.cantidad}</td>
+                    <td><small>${v.metodoPago}</small></td>
+                    <td><b>$${Number(v.total).toFixed(2)}</b></td>
+                </tr>`;
+            });
+        }
+
+        document.getElementById('lblTotalDinero').innerHTML = `$${totalDinero.toFixed(2)} <span style="font-size:0.75rem; font-weight:normal; color:var(--text-muted);" id="lblDetallePago">(Efectivo: $${totalEfectivo.toFixed(2)} | Transf: $${totalTransferencia.toFixed(2)})</span>`;
+    }
+
+    async function cargarHistorialGastos() {
+        cambiarVista('vistaGastosHistorial');
+        let tbody = document.getElementById('cuerpoTablaGastos');
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Cargando gastos...</td></tr>`;
+
+        try {
+            let response = await fetch(URL_WEB_APP, {
+                method: 'POST',
+                body: JSON.stringify({ accion: 'obtenerGastos' })
+            });
+            let resultado = await response.json();
+            if (resultado.status === 'success') {
+                todosLosGastos = resultado.gastos;
+                filtrarGastos('hoy', document.querySelector('#vistaGastosHistorial .chip'));
+            } else {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--danger);">Error al cargar gastos</td></tr>`;
+            }
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--danger);">Error de conexión</td></tr>`;
+        }
+    }
+
+    function filtrarGastos(tipoFiltro, elementoBtn) {
+        let contenedorVista = document.getElementById('vistaGastosHistorial');
+        contenedorVista.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        if (elementoBtn) elementoBtn.classList.add('active');
+
+        let contenedorRango = document.getElementById('contenedorRangoFechasGastos');
+        contenedorRango.style.display = (tipoFiltro === 'rango') ? 'block' : 'none';
+
+        let hoyStr = new Date().toISOString().split('T')[0];
+        let ayerObj = new Date();
+        ayerObj.setDate(ayerObj.getDate() - 1);
+        let ayerStr = ayerObj.toISOString().split('T')[0];
+
+        let gastosFiltrados = todosLosGastos.filter(g => {
+            let fechaGastoStr = new Date(g.fechaHora).toISOString().split('T')[0];
+            if (tipoFiltro === 'hoy') return fechaGastoStr === hoyStr;
+            if (tipoFiltro === 'ayer') return fechaGastoStr === ayerStr;
+            if (tipoFiltro === 'rango') {
+                let inicio = document.getElementById('fechaInicioGasto').value;
+                let fin = document.getElementById('fechaFinGasto').value;
+                if (!inicio || !fin) return true;
+                return fechaGastoStr >= inicio && fechaGastoStr <= fin;
+            }
+            return true;
+        });
+
+        renderizarTablaGastos(gastosFiltrados);
+    }
+
+    function aplicarFiltroRangoGasto() {
+        filtrarGastos('rango', null);
+    }
+
+    function renderizarTablaGastos(gastos) {
+        let tbody = document.getElementById('cuerpoTablaGastos');
+        tbody.innerHTML = "";
+
+        let totalGastos = 0;
+
+        if (gastos.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">No hay gastos registrados en este periodo</td></tr>`;
+        } else {
+            gastos.forEach(g => {
+                let fechaFormateada = new Date(g.fechaHora).toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + new Date(g.fechaHora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                totalGastos += Number(g.monto);
+
+                tbody.innerHTML += `<tr>
+                    <td><small style="color:var(--text-muted);">${fechaFormateada}</small></td>
+                    <td><b>${g.concepto}</b></td>
+                    <td><b>$${Number(g.monto).toFixed(2)}</b></td>
+                </tr>`;
+            });
+        }
+
+        document.getElementById('lblTotalGastos').innerText = `$${totalGastos.toFixed(2)}`;
+    }
+
+    async function cargarInventarioActual() {
+        cambiarVista('vistaStock');
+        let tbody = document.getElementById('cuerpoTablaStock');
+        tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;">Cargando inventario...</td></tr>`;
+
+        try {
+            let response = await fetch(URL_WEB_APP, {
+                method: 'POST',
+                body: JSON.stringify({ accion: 'obtenerInventario' })
+            });
+            let resultado = await response.json();
+            if (resultado.status === 'success') {
+                inventarioCache = resultado.inventario;
+                poblarSelectCorreccionStock();
+                tbody.innerHTML = "";
+                resultado.inventario.forEach(prod => {
+                    tbody.innerHTML += `<tr><td><b>${prod.sabor}</b> (${prod.capacidad})<br><small style="color:var(--text-muted);">${prod.codigo}</small></td><td><span style="font-size:1.05rem; color:var(--accent); font-weight:700;">${prod.stockPiezas} pzas</span></td></tr>`;
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:var(--danger);">Error al cargar stock</td></tr>`;
+            }
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:var(--danger);">Error de conexión</td></tr>`;
+        }
+    }
+
+    async function ejecutarCorreccion() {
+        let codigo = document.getElementById('corrigeSelectProducto').value;
+        let nuevoStock = document.getElementById('corrigeStockNuevo').value;
+        if (!codigo || !nuevoStock) return alert("Selecciona un producto e ingresa el stock real.");
+
+        document.getElementById('loader').style.display = 'block';
+        try {
+            let response = await fetch(URL_WEB_APP, {
+                method: 'POST',
+                body: JSON.stringify({ accion: 'corregirStock', codigo: codigo, nuevoStock: nuevoStock })
+            });
+            let resultado = await response.json();
+            document.getElementById('loader').style.display = 'none';
+            if (resultado.status === 'success') {
+                mostrarAlerta(resultado.message, false);
+                cargarInventarioActual();
+            } else {
+                mostrarAlerta("Error: " + resultado.message, true);
+            }
+        } catch (e) {
+            document.getElementById('loader').style.display = 'none';
+            mostrarAlerta("Error de conexión.", true);
+        }
+    }
+
+    function iniciarEscaner(inputId, readerContainerId) {
+        if (html5QrCode) {
+            html5QrCode.stop().catch(() => {});
+        }
+        let readerDiv = document.getElementById(readerContainerId);
+        readerDiv.style.display = 'block';
+        
+        html5QrCode = new Html5Qrcode(readerContainerId);
+        html5QrCode.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 150 } },
+            (decodedText) => {
+                document.getElementById(inputId).value = decodedText;
+                html5QrCode.stop().catch(() => {});
+                readerDiv.style.display = 'none';
+                
+                if (inputId === 'ventaCodigo') buscarInfoProducto('ventaCodigo', 'ventaProductoInfo');
+                if (inputId === 'consumoCodigo') buscarInfoProducto('consumoCodigo', 'consumoProductoInfo');
+                if (inputId === 'fiadoCodigo') buscarInfoProducto('fiadoCodigo', 'fiadoProductoInfo');
+            },
+            (errorMessage) => { }
+        ).catch(err => {
+            alert("No se pudo iniciar la cámara. Revisa los permisos.");
+        });
+    }
+</script>
+
+</body>
+</html>
